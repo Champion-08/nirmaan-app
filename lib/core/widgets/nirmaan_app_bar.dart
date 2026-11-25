@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/theme.dart';
 
 class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -90,7 +91,7 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ? NirmaanColors.darkHeading
                     : NirmaanColors.headingDark,
               ),
-              onPressed: onNotificationTap,
+              onPressed: onNotificationTap ?? () => context.push('/notifications'),
             ),
             if (hasUnread)
               Positioned(
@@ -111,7 +112,7 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
         Padding(
           padding: const EdgeInsets.only(right: NirmaanDimens.base),
           child: GestureDetector(
-            onTap: onProfileTap,
+            onTap: onProfileTap ?? () => context.push('/profile'),
             child: CircleAvatar(
               radius: 17,
               backgroundColor: NirmaanColors.brandNavy,

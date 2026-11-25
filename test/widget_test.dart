@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nirmaan/main.dart';
 
 void main() {
-  testWidgets('App renders Nirmaan title', (WidgetTester tester) async {
+  testWidgets('App renders Nirmaan title on launch', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: NirmaanApp()),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Nirmaan'), findsWidgets);
 
-    expect(find.text('Nirmaan'), findsOneWidget);
+    // Advance past splash timer
+    await tester.pump(const Duration(milliseconds: 2200));
+    await tester.pump();
   });
 }
