@@ -41,6 +41,7 @@ class KpiMetricCard extends StatelessWidget {
           boxShadow: isDark ? NirmaanShadows.cardShadowDark : NirmaanShadows.cardShadow,
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Top row: icon + label
@@ -72,7 +73,7 @@ class KpiMetricCard extends StatelessWidget {
               ],
             ),
 
-            const Spacer(),
+            const SizedBox(height: NirmaanDimens.md),
 
             // KPI value
             Text(

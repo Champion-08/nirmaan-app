@@ -14,29 +14,26 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onNotificationTap,
     this.onProfileTap,
     this.hasUnread = true,
-  })  : _isSub = false,
-        _subTitle = null,
-        _actionLabel = null,
-        _onAction = null;
+  })  : isSub = false,
+        title = null,
+        actionLabel = null,
+        onAction = null;
 
   /// Sub-page variant with back arrow, page title, and optional right action pill.
   const NirmaanAppBar.sub({
     super.key,
-    required String title,
-    String? actionLabel,
-    VoidCallback? onAction,
-  })  : _isSub = true,
-        _subTitle = title,
-        _actionLabel = actionLabel,
-        _onAction = onAction,
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  })  : isSub = true,
         onNotificationTap = null,
         onProfileTap = null,
         hasUnread = false;
 
-  final bool _isSub;
-  final String? _subTitle;
-  final String? _actionLabel;
-  final VoidCallback? _onAction;
+  final bool isSub;
+  final String? title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onProfileTap;
   final bool hasUnread;
@@ -48,42 +45,39 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (_isSub) {
+    if (isSub) {
       return AppBar(
         leading: const BackButton(),
         title: Text(
-          _subTitle ?? '',
+          title ?? '',
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         actions: [
-          if (_actionLabel case final label?)
+          if (actionLabel case final label?)
             Padding(
               padding: const EdgeInsets.only(right: NirmaanDimens.base),
-              child: _ActionPill(label: label, onTap: _onAction),
+              child: _ActionPill(label: label, onTap: onAction),
             ),
         ],
       );
     }
 
     return AppBar(
-      leadingWidth: 180,
       leading: Padding(
         padding: const EdgeInsets.only(left: NirmaanDimens.base),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _NirmaanLogo(isDark: isDark),
-            const SizedBox(width: NirmaanDimens.sm),
-            Text(
-              'Nirmaan',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: isDark
-                        ? NirmaanColors.darkHeading
-                        : NirmaanColors.headingDark,
-                  ),
-            ),
-          ],
+        child: Center(
+          child: _NirmaanLogo(isDark: isDark),
         ),
+      ),
+      leadingWidth: 48,
+      titleSpacing: NirmaanDimens.sm,
+      title: Text(
+        'Nirmaan',
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              color: isDark
+                  ? NirmaanColors.darkHeading
+                  : NirmaanColors.headingDark,
+            ),
       ),
       actions: [
         // Notification bell

@@ -5,10 +5,20 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'app/router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/theme_provider.dart';
+import 'data/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+
+  // Load environment variables (.env)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('[Nirmaan] .env load notice: $e');
+  }
+
+  // Initialize Supabase with graceful offline demo fallback
+  await SupabaseService.initialize();
 
   runApp(const ProviderScope(child: NirmaanApp()));
 }
