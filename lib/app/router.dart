@@ -14,6 +14,10 @@ import '../features/settings/presentation/settings_screen.dart';
 import '../features/notifications/presentation/notifications_screen.dart';
 import '../features/inventory/presentation/products_screen.dart';
 import '../features/inventory/presentation/add_product_screen.dart';
+import '../features/ai_intelligence/presentation/ai_coach_screen.dart';
+import '../features/ai_intelligence/presentation/daily_brief_screen.dart';
+import '../features/ai_intelligence/presentation/analytics_screen.dart';
+import '../features/ai_intelligence/presentation/business_health_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -65,6 +69,22 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/add-product',
       builder: (context, state) => const AddProductScreen(),
+    ),
+    GoRoute(
+      path: '/ai-coach',
+      builder: (context, state) => const AiCoachScreen(),
+    ),
+    GoRoute(
+      path: '/daily-brief',
+      builder: (context, state) => const DailyBriefScreen(),
+    ),
+    GoRoute(
+      path: '/analytics',
+      builder: (context, state) => const AnalyticsScreen(),
+    ),
+    GoRoute(
+      path: '/business-health',
+      builder: (context, state) => const BusinessHealthScreen(),
     ),
   ],
 );

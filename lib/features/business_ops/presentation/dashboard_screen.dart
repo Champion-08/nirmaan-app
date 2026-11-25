@@ -193,11 +193,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Morning summary: High evening footfall predicted.')),
-                        );
-                      },
+                      onTap: () => context.push('/daily-brief'),
                       child: Text('Insights >', style: NirmaanTypography.labelSmall.copyWith(color: NirmaanColors.brandRoyalBlue, fontWeight: FontWeight.w700)),
                     ),
                   ],

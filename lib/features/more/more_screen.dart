@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/theme.dart';
 import '../../core/widgets/widgets.dart';
+import '../ai_intelligence/presentation/business_twin_simulator_sheet.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -126,9 +127,7 @@ class MoreScreen extends ConsumerWidget {
             badgeText: 'Smart',
             subtitle: 'Real-time sales & inventory optimization',
             isDark: isDark,
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('AI Business Coach active: Reviewing store ledger.')),
-            ),
+            onTap: () => context.push('/ai-coach'),
           ),
           _CommandHubTile(
             icon: Icons.today_rounded,
@@ -138,13 +137,26 @@ class MoreScreen extends ConsumerWidget {
             onTap: () => context.go('/'),
           ),
           _CommandHubTile(
+            icon: Icons.model_training_rounded,
+            title: 'Business Twin Simulator',
+            badgeText: 'AI Sim',
+            subtitle: 'Simulate margin, inventory & evening hour levers',
+            isDark: isDark,
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => const BusinessTwinSimulatorSheet(),
+              );
+            },
+          ),
+          _CommandHubTile(
             icon: Icons.bar_chart_rounded,
             title: 'Business Analytics',
             subtitle: 'Revenue trends, top selling items & margins',
             isDark: isDark,
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Business Analytics: Showing 30-day forecast.')),
-            ),
+            onTap: () => context.push('/analytics'),
           ),
           _CommandHubTile(
             icon: Icons.health_and_safety_outlined,
@@ -152,9 +164,7 @@ class MoreScreen extends ConsumerWidget {
             subtitle: 'Overall store score: 82/100 (Optimal)',
             showGreenDot: true,
             isDark: isDark,
-            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Business Health Score: 82/100 - Optimal condition.')),
-            ),
+            onTap: () => context.push('/business-health'),
           ),
           _CommandHubTile(
             icon: Icons.settings_outlined,
