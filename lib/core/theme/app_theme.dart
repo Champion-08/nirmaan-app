@@ -82,7 +82,7 @@ class NirmaanTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: NirmaanColors.brandNavy,
           foregroundColor: NirmaanColors.white,
-          minimumSize: const Size.fromHeight(NirmaanDimens.buttonHeight),
+          minimumSize: const Size(64, NirmaanDimens.buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(NirmaanDimens.buttonRadius),
           ),
@@ -209,7 +209,7 @@ class NirmaanTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: NirmaanColors.brandRoyalBlue,
           foregroundColor: NirmaanColors.white,
-          minimumSize: const Size.fromHeight(NirmaanDimens.buttonHeight),
+          minimumSize: const Size(64, NirmaanDimens.buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(NirmaanDimens.buttonRadius),
           ),

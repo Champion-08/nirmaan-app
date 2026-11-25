@@ -3,7 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../core/widgets/widgets.dart';
-import '../features/home/home_screen.dart';
+import '../features/business_ops/presentation/dashboard_screen.dart';
 import '../features/sales/sales_screen.dart';
 import '../features/inventory/inventory_screen.dart';
 import '../features/customers/customers_screen.dart';
@@ -20,7 +20,7 @@ class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
 
   static const _screens = <Widget>[
-    HomeScreen(),
+    DashboardScreen(),
     SalesScreen(),
     InventoryScreen(),
     CustomersScreen(),
