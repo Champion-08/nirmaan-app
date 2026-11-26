@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -20,9 +21,17 @@ class ProfileScreen extends ConsumerWidget {
       body: storeAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => const Center(child: Text('Failed to load profile')),
-        data: (store) => ListView(
-          padding: const EdgeInsets.all(NirmaanDimens.base),
-          children: [
+        data: (store) => RefreshIndicator(
+          color: NirmaanColors.brandNavy,
+          onRefresh: () async {
+            HapticFeedback.lightImpact();
+            ref.invalidate(storeProvider);
+            await ref.read(storeProvider.future);
+          },
+          child: ListView(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+            children: [
             // Header card with RS avatar, name, badges & Edit Profile
             Container(
               padding: const EdgeInsets.all(NirmaanDimens.base),
@@ -118,10 +127,14 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
-                    onPressed: () => context.push('/business-setup'),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      context.push('/business-setup');
+                    },
                     icon: const Icon(Icons.edit_outlined, size: 16),
                     label: const Text('Edit Profile'),
                     style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(120, 44),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(NirmaanDimens.buttonRadius),
                       ),
@@ -222,7 +235,10 @@ class ProfileScreen extends ConsumerWidget {
                       title: Text('Settings & Notifications', style: NirmaanTypography.titleMedium),
                       subtitle: Text('Theme, language & alerts', style: NirmaanTypography.bodySmall),
                       trailing: const Icon(Icons.chevron_right, size: 20),
-                      onTap: () => context.push('/settings'),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/settings');
+                      },
                     ),
                     const Divider(height: 1),
                     ListTile(
@@ -230,7 +246,10 @@ class ProfileScreen extends ConsumerWidget {
                       title: Text('Notification Center', style: NirmaanTypography.titleMedium),
                       subtitle: Text('Recent business triggers', style: NirmaanTypography.bodySmall),
                       trailing: const Icon(Icons.chevron_right, size: 20),
-                      onTap: () => context.push('/notifications'),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/notifications');
+                      },
                     ),
                   ],
                 ),
@@ -245,6 +264,7 @@ class ProfileScreen extends ConsumerWidget {
               height: 50,
               child: OutlinedButton.icon(
                 onPressed: () async {
+                  HapticFeedback.mediumImpact();
                   await auth.signOut();
                   if (!context.mounted) return;
                   context.go('/login');
@@ -271,6 +291,7 @@ class ProfileScreen extends ConsumerWidget {
           ],
         ),
       ),
+      ),
     );
   }
 }
@@ -293,18 +314,28 @@ class _InfoRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: NirmaanTypography.bodyMedium.copyWith(
-            color: isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey,
+        Flexible(
+          child: Text(
+            label,
+            style: NirmaanTypography.bodyMedium.copyWith(
+              color: isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
+        const SizedBox(width: 12),
         valueWidget ??
-            Text(
-              value ?? '',
-              style: NirmaanTypography.titleMedium.copyWith(
-                color: isDark ? NirmaanColors.darkHeading : NirmaanColors.headingDark,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                value ?? '',
+                style: NirmaanTypography.titleMedium.copyWith(
+                  color: isDark ? NirmaanColors.darkHeading : NirmaanColors.headingDark,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
               ),
             ),
       ],

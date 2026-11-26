@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -26,11 +27,14 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar.sub(title: 'Products Catalogue'),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/add-product'),
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          context.push('/add-product');
+        },
         backgroundColor: NirmaanColors.brandNavy,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Product', style: TextStyle(fontWeight: FontWeight.w700)),
+        label: const Text('+ Add Product', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -54,9 +58,17 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
             'Grocery ${allProducts.where((p) => p.category == 'Grocery').length}',
           ];
 
-          return ListView(
-            padding: const EdgeInsets.all(NirmaanDimens.base),
-            children: [
+          return RefreshIndicator(
+            color: NirmaanColors.brandNavy,
+            onRefresh: () async {
+              HapticFeedback.lightImpact();
+              ref.invalidate(productsProvider);
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+              children: [
               // Header with total count + warehouse pill
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,6 +203,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
 
               const SizedBox(height: 80),
             ],
+            ),
           );
         },
       ),
@@ -225,19 +238,30 @@ class _ProductCard extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Thumbnail / Icon
+          // 64x64dp Rounded (12px) Thumbnail with Graceful Fallback
           Container(
-            width: 50,
-            height: 50,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.tintedHighlight,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              _getIconForCategory(product.category),
-              color: NirmaanColors.brandRoyalBlue,
-              size: 24,
-            ),
+            clipBehavior: Clip.antiAlias,
+            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                ? Image.network(
+                    product.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      _getIconForCategory(product.category),
+                      color: NirmaanColors.brandRoyalBlue,
+                      size: 28,
+                    ),
+                  )
+                : Icon(
+                    _getIconForCategory(product.category),
+                    color: NirmaanColors.brandRoyalBlue,
+                    size: 28,
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -251,15 +275,19 @@ class _ProductCard extends ConsumerWidget {
                       child: Text(
                         product.name,
                         style: NirmaanTypography.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 18),
+                      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                      icon: const Icon(Icons.more_vert, size: 20),
                       itemBuilder: (ctx) => [
                         const PopupMenuItem(value: 'restock', child: Text('Quick Restock (+10)')),
                         const PopupMenuItem(value: 'edit', child: Text('Edit Price / Details')),
                       ],
                       onSelected: (action) {
+                        HapticFeedback.lightImpact();
                         if (action == 'restock') {
                           ref.read(productsProvider.notifier).updateStock(product.id, product.stockQty + 10);
                           ScaffoldMessenger.of(context).showSnackBar(

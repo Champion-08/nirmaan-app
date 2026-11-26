@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -39,7 +40,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar.sub(title: 'Settings'),
       body: ListView(
-        padding: const EdgeInsets.all(NirmaanDimens.base),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
         children: [
           // ── APP PREFERENCES ──────────────────────────────────────────
           _SectionHeader(title: 'APP PREFERENCES', isDark: isDark),
@@ -80,6 +82,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                     selected: {themeMode},
                     onSelectionChanged: (Set<ThemeMode> newSelection) {
+                      HapticFeedback.lightImpact();
                       ref.read(themeModeProvider.notifier).setMode(newSelection.first);
                     },
                   ),
@@ -243,8 +246,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
+                  height: 48,
                   child: OutlinedButton(
                     onPressed: () async {
+                      HapticFeedback.mediumImpact();
                       await auth.signOut();
                       if (!context.mounted) return;
                       context.go('/login');
@@ -309,23 +314,36 @@ class _SwitchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: NirmaanTypography.titleMedium),
+                Text(
+                  title,
+                  style: NirmaanTypography.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 2),
-                Text(subtitle, style: NirmaanTypography.bodySmall),
+                Text(
+                  subtitle,
+                  style: NirmaanTypography.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
           Switch.adaptive(
             value: value,
             activeTrackColor: NirmaanColors.brandNavy,
-            onChanged: onChanged,
+            onChanged: (val) {
+              HapticFeedback.lightImpact();
+              onChanged(val);
+            },
           ),
         ],
       ),

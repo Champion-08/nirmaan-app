@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -72,6 +73,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -102,6 +104,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: NirmaanDimens.xl, vertical: NirmaanDimens.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,6 +255,7 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
                               : (isDark ? NirmaanColors.darkCardBorder : NirmaanColors.cardBorder),
                         ),
                         onSelected: (_) {
+                          HapticFeedback.lightImpact();
                           if (cat == 'Grocery') {
                             setState(() => _selectedCategory = 'Grocery & Daily Essentials');
                           } else if (cat == 'Clothing') {

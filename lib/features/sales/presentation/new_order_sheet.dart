@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
@@ -184,9 +185,11 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
                               ),
                               // Counter buttons
                               IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                                icon: const Icon(Icons.remove_circle_outline, size: 22),
                                 onPressed: qty > 0
                                     ? () {
+                                        HapticFeedback.lightImpact();
                                         setState(() {
                                           if (qty == 1) {
                                             _selectedQuantities.remove(prod.id);
@@ -197,11 +200,16 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
                                       }
                                     : null,
                               ),
-                              Text('$qty', style: NirmaanTypography.titleMedium),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Text('$qty', style: NirmaanTypography.titleMedium),
+                              ),
                               IconButton(
-                                icon: const Icon(Icons.add_circle_outline, size: 20),
+                                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                                icon: const Icon(Icons.add_circle_outline, size: 22),
                                 onPressed: prod.stockQty > qty
                                     ? () {
+                                        HapticFeedback.lightImpact();
                                         setState(() {
                                           _selectedQuantities[prod.id] = qty + 1;
                                         });
@@ -223,6 +231,7 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
                 const SizedBox(height: 6),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
                   child: Row(
                     children: [
                       'UPI Paid',
@@ -241,7 +250,10 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
                             color: isSelected ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                           ),
-                          onSelected: (_) => setState(() => _paymentMethod = method),
+                          onSelected: (_) {
+                            HapticFeedback.lightImpact();
+                            setState(() => _paymentMethod = method);
+                          },
                         ),
                       );
                     }).toList(),

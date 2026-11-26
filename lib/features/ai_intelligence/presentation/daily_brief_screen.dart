@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -24,7 +25,14 @@ class _DailyBriefScreenState extends ConsumerState<DailyBriefScreen> {
     return Scaffold(
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).maybePop();
+          },
+        ),
         titleSpacing: 0,
         title: Row(
           children: [
@@ -52,16 +60,22 @@ class _DailyBriefScreenState extends ConsumerState<DailyBriefScreen> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(NirmaanDimens.base),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
         children: [
           // Header info
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Good morning, $ownerName',
-                style: NirmaanTypography.headlineLarge,
+              Expanded(
+                child: Text(
+                  'Good morning, $ownerName',
+                  style: NirmaanTypography.headlineLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Generated at 8:00 AM',
                 style: NirmaanTypography.bodySmall.copyWith(fontSize: 11),
@@ -92,9 +106,11 @@ class _DailyBriefScreenState extends ConsumerState<DailyBriefScreen> {
             child: Row(
               children: [
                 IconButton.filled(
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   icon: Icon(_isPlayingAudio ? Icons.pause_rounded : Icons.play_arrow_rounded, color: NirmaanColors.brandNavy),
                   style: IconButton.styleFrom(backgroundColor: Colors.white),
                   onPressed: () {
+                    HapticFeedback.lightImpact();
                     setState(() => _isPlayingAudio = !_isPlayingAudio);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

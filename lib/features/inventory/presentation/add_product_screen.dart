@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -62,10 +63,14 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   double get _profitPerUnit => (_sellingPrice - _purchasePrice).clamp(0.0, 99999.0);
 
   void _openBarcodeScanner() {
+    HapticFeedback.lightImpact();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.black,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => SizedBox(
         height: MediaQuery.of(context).size.height * 0.6,
         child: Stack(
@@ -181,10 +186,12 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar.sub(title: 'Add Product'),
       body: ListView(
-        padding: const EdgeInsets.all(NirmaanDimens.base),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 80),
         children: [
           // New Inventory Item [Active] header card
           Container(
@@ -380,16 +387,26 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                     Row(
                       children: [
                         IconButton.filledTonal(
-                          icon: const Icon(Icons.remove, size: 18),
-                          onPressed: _stockQty > 0 ? () => setState(() => _stockQty--) : null,
+                          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                          icon: const Icon(Icons.remove, size: 20),
+                          onPressed: _stockQty > 0
+                              ? () {
+                                  HapticFeedback.lightImpact();
+                                  setState(() => _stockQty--);
+                                }
+                              : null,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: Text('$_stockQty', style: NirmaanTypography.headlineMedium),
                         ),
                         IconButton.filledTonal(
-                          icon: const Icon(Icons.add, size: 18),
-                          onPressed: () => setState(() => _stockQty++),
+                          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                          icon: const Icon(Icons.add, size: 20),
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            setState(() => _stockQty++);
+                          },
                         ),
                       ],
                     ),

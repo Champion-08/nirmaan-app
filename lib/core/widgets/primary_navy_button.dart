@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/theme.dart';
 
 class PrimaryNavyButton extends StatelessWidget {
@@ -26,7 +27,12 @@ class PrimaryNavyButton extends StatelessWidget {
     return SizedBox(
       height: NirmaanDimens.buttonHeight,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading || onPressed == null
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed!();
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: NirmaanColors.brandNavy,
           foregroundColor: NirmaanColors.white,

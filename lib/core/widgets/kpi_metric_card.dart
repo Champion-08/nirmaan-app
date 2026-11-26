@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/theme.dart';
 
 class KpiMetricCard extends StatelessWidget {
@@ -29,7 +30,12 @@ class KpiMetricCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap != null
+          ? () {
+              HapticFeedback.lightImpact();
+              onTap!();
+            }
+          : null,
       child: Container(
         padding: const EdgeInsets.all(NirmaanDimens.base),
         decoration: BoxDecoration(
@@ -79,6 +85,8 @@ class KpiMetricCard extends StatelessWidget {
             Text(
               value,
               style: isDark ? NirmaanTypography.darkKpiNumber : NirmaanTypography.kpiNumber,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
 
             // Delta
@@ -94,13 +102,17 @@ class KpiMetricCard extends StatelessWidget {
                         : NirmaanColors.dangerText,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    delta!,
-                    style: NirmaanTypography.labelSmall.copyWith(
-                      color: deltaPositive
-                          ? NirmaanColors.successText
-                          : NirmaanColors.dangerText,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      delta!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: NirmaanTypography.labelSmall.copyWith(
+                        color: deltaPositive
+                            ? NirmaanColors.successText
+                            : NirmaanColors.dangerText,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],

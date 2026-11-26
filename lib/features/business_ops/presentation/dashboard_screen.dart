@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -20,9 +21,20 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar(),
-      body: ListView(
-        padding: const EdgeInsets.all(NirmaanDimens.base),
-        children: [
+      body: RefreshIndicator(
+        color: NirmaanColors.brandNavy,
+        onRefresh: () async {
+          HapticFeedback.lightImpact();
+          ref.invalidate(storeProvider);
+          ref.invalidate(ordersProvider);
+          ref.invalidate(productsProvider);
+          ref.invalidate(customersProvider);
+          await Future.delayed(const Duration(milliseconds: 500));
+        },
+        child: ListView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+          children: [
           // ── Greeting Header + AI Badge + Live Sync ────────────────────
           Row(
             children: [
@@ -116,7 +128,7 @@ class DashboardScreen extends ConsumerWidget {
             crossAxisSpacing: NirmaanDimens.md,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.35,
+            childAspectRatio: 1.18,
             children: const [
               KpiMetricCard(
                 label: 'Revenue',
@@ -315,10 +327,14 @@ class DashboardScreen extends ConsumerWidget {
                 flex: 4,
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    HapticFeedback.lightImpact();
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
                       builder: (_) => const NewOrderSheet(),
                     );
                   },
@@ -337,7 +353,10 @@ class DashboardScreen extends ConsumerWidget {
               Expanded(
                 flex: 4,
                 child: OutlinedButton.icon(
-                  onPressed: () => context.push('/add-product'),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    context.push('/add-product');
+                  },
                   icon: const Icon(Icons.add_box_outlined, size: 18),
                   label: const Text('+ Product'),
                   style: OutlinedButton.styleFrom(
@@ -352,6 +371,7 @@ class DashboardScreen extends ConsumerWidget {
                 flex: 4,
                 child: OutlinedButton.icon(
                   onPressed: () {
+                    HapticFeedback.lightImpact();
                     showDialog(
                       context: context,
                       builder: (_) => const AddCustomerDialog(),
@@ -394,9 +414,19 @@ class DashboardScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Vikram Khanna', style: NirmaanTypography.titleMedium),
+                      Text(
+                        'Vikram Khanna',
+                        style: NirmaanTypography.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 2),
-                      Text('Bill #1042 • 4 items • UPI Received', style: NirmaanTypography.bodySmall),
+                      Text(
+                        'Bill #1042 • 4 items • UPI Received',
+                        style: NirmaanTypography.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 ),
@@ -414,6 +444,7 @@ class DashboardScreen extends ConsumerWidget {
 
           const SizedBox(height: NirmaanDimens.xxl),
         ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -78,6 +79,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -111,6 +113,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: NirmaanDimens.xl, vertical: NirmaanDimens.base),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +270,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => context.go('/login'),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.go('/login');
+                      },
                       child: Text(
                         'Log in',
                         style: NirmaanTypography.bodyMedium.copyWith(

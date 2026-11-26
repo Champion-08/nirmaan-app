@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -27,6 +28,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         title: 'Notifications',
         actionLabel: 'Mark all read',
         onAction: () {
+          HapticFeedback.lightImpact();
           // Mark all notifications as read in state
           final list = notificationsAsync.valueOrNull ?? [];
           for (final n in list) {
@@ -46,88 +48,107 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ? allNotifs.where((n) => !n.isRead).toList()
               : allNotifs;
 
-          return ListView(
-            padding: const EdgeInsets.all(NirmaanDimens.base),
-            children: [
-              // Filter pills: All (5) / Unread (3)
-              Row(
-                children: [
-                  ChoiceChip(
-                    label: Text('All (${allNotifs.length})'),
-                    selected: _selectedFilter == 0,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedFilter == 0
-                          ? (isDark ? Colors.white : NirmaanColors.brandNavy)
-                          : (isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey),
-                      fontWeight: _selectedFilter == 0 ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                    onSelected: (_) => setState(() => _selectedFilter = 0),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('Unread ($unreadCount)'),
-                    selected: _selectedFilter == 1,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedFilter == 1
-                          ? (isDark ? Colors.white : NirmaanColors.brandNavy)
-                          : (isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey),
-                      fontWeight: _selectedFilter == 1 ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                    onSelected: (_) => setState(() => _selectedFilter = 1),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: NirmaanDimens.lg),
-
-              // Group: TODAY
-              _SectionDivider(title: 'TODAY', isDark: isDark),
-              ...filteredList.take(2).map((notif) => _NotificationCard(
-                    notification: notif,
-                    isDark: isDark,
-                  )),
-
-              const SizedBox(height: NirmaanDimens.md),
-
-              // Group: YESTERDAY
-              _SectionDivider(title: 'YESTERDAY', isDark: isDark),
-              ...filteredList.skip(2).map((notif) => _NotificationCard(
-                    notification: notif,
-                    isDark: isDark,
-                  )),
-
-              const SizedBox(height: NirmaanDimens.xl),
-
-              // You're all caught up! banner
-              Container(
-                padding: const EdgeInsets.all(NirmaanDimens.base),
-                decoration: BoxDecoration(
-                  color: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.tintedHighlight,
-                  borderRadius: BorderRadius.circular(NirmaanDimens.cardRadius),
-                  border: Border.all(
-                    color: isDark ? NirmaanColors.darkCardBorder : NirmaanColors.cardBorder,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.done_all_rounded, size: 20, color: NirmaanColors.brandRoyalBlue),
-                    const SizedBox(width: 8),
-                    Text(
-                      "You're all caught up!",
-                      style: NirmaanTypography.titleMedium.copyWith(
-                        color: NirmaanColors.brandRoyalBlue,
-                        fontWeight: FontWeight.w600,
+          return RefreshIndicator(
+            color: NirmaanColors.brandNavy,
+            onRefresh: () async {
+              HapticFeedback.lightImpact();
+              ref.invalidate(notificationsProvider);
+              await Future.delayed(const Duration(milliseconds: 300));
+            },
+            child: ListView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+              children: [
+                // Filter pills: All (5) / Unread (3)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: [
+                      ChoiceChip(
+                        label: Text('All (${allNotifs.length})'),
+                        selected: _selectedFilter == 0,
+                        selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                        labelStyle: TextStyle(
+                          color: _selectedFilter == 0
+                              ? (isDark ? Colors.white : NirmaanColors.brandNavy)
+                              : (isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey),
+                          fontWeight: _selectedFilter == 0 ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                        onSelected: (_) {
+                          HapticFeedback.lightImpact();
+                          setState(() => _selectedFilter = 0);
+                        },
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text('Unread ($unreadCount)'),
+                        selected: _selectedFilter == 1,
+                        selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                        labelStyle: TextStyle(
+                          color: _selectedFilter == 1
+                              ? (isDark ? Colors.white : NirmaanColors.brandNavy)
+                              : (isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey),
+                          fontWeight: _selectedFilter == 1 ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                        onSelected: (_) {
+                          HapticFeedback.lightImpact();
+                          setState(() => _selectedFilter = 1);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: NirmaanDimens.xxl),
-            ],
+                const SizedBox(height: NirmaanDimens.lg),
+
+                // Group: TODAY
+                _SectionDivider(title: 'TODAY', isDark: isDark),
+                ...filteredList.take(2).map((notif) => _NotificationCard(
+                      notification: notif,
+                      isDark: isDark,
+                    )),
+
+                const SizedBox(height: NirmaanDimens.md),
+
+                // Group: YESTERDAY
+                _SectionDivider(title: 'YESTERDAY', isDark: isDark),
+                ...filteredList.skip(2).map((notif) => _NotificationCard(
+                      notification: notif,
+                      isDark: isDark,
+                    )),
+
+                const SizedBox(height: NirmaanDimens.xl),
+
+                // You're all caught up! banner
+                Container(
+                  padding: const EdgeInsets.all(NirmaanDimens.base),
+                  decoration: BoxDecoration(
+                    color: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.tintedHighlight,
+                    borderRadius: BorderRadius.circular(NirmaanDimens.cardRadius),
+                    border: Border.all(
+                      color: isDark ? NirmaanColors.darkCardBorder : NirmaanColors.cardBorder,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.done_all_rounded, size: 20, color: NirmaanColors.brandRoyalBlue),
+                      const SizedBox(width: 8),
+                      Text(
+                        "You're all caught up!",
+                        style: NirmaanTypography.titleMedium.copyWith(
+                          color: NirmaanColors.brandRoyalBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: NirmaanDimens.xxl),
+              ],
+            ),
           );
         },
       ),
@@ -223,6 +244,8 @@ class _NotificationCard extends ConsumerWidget {
             style: NirmaanTypography.titleMedium.copyWith(
               color: isDark ? NirmaanColors.darkHeading : NirmaanColors.headingDark,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
@@ -231,6 +254,8 @@ class _NotificationCard extends ConsumerWidget {
               color: isDark ? NirmaanColors.darkBody : NirmaanColors.bodyGrey,
               height: 1.35,
             ),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
           // Inline action button
@@ -239,6 +264,7 @@ class _NotificationCard extends ConsumerWidget {
               if (notification.actionLabel != null)
                 FilledButton.tonal(
                   onPressed: () {
+                    HapticFeedback.lightImpact();
                     ref.read(notificationsProvider.notifier).markAsRead(notification.id);
                     if (notification.actionRoute != null) {
                       context.push(notification.actionRoute!);
@@ -264,6 +290,7 @@ class _NotificationCard extends ConsumerWidget {
               if (!notification.isRead)
                 TextButton(
                   onPressed: () {
+                    HapticFeedback.lightImpact();
                     ref.read(notificationsProvider.notifier).markAsRead(notification.id);
                   },
                   child: Text(

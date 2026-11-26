@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
 
@@ -66,17 +67,22 @@ class _BusinessTwinSimulatorSheetState extends State<BusinessTwinSimulatorSheet>
                   child: const Icon(Icons.model_training_rounded, color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Business Twin Simulator', style: NirmaanTypography.headlineSmall),
-                    Text('AI What-If simulation engine', style: NirmaanTypography.bodySmall),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Business Twin Simulator', style: NirmaanTypography.headlineSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text('AI What-If simulation engine', style: NirmaanTypography.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.close_rounded),
-                  onPressed: () => Navigator.pop(context),
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             ),
@@ -86,7 +92,8 @@ class _BusinessTwinSimulatorSheetState extends State<BusinessTwinSimulatorSheet>
 
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: NirmaanDimens.base),
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, 0, NirmaanDimens.base, 40),
               children: [
                 // Projection Output Card
                 Container(
@@ -300,7 +307,8 @@ class _SliderRow extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: NirmaanTypography.titleMedium),
+            Flexible(child: Text(label, style: NirmaanTypography.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis)),
+            const SizedBox(width: 8),
             Text(valueString, style: NirmaanTypography.titleMedium.copyWith(color: NirmaanColors.brandRoyalBlue, fontWeight: FontWeight.bold)),
           ],
         ),

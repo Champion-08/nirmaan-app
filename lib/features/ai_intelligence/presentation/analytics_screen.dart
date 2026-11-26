@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/widgets/widgets.dart';
@@ -33,6 +34,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String get _footfallText => _selectedPeriod == 0 ? '124' : (_selectedPeriod == 1 ? '512' : '1,680');
 
   void _exportReport() {
+    HapticFeedback.lightImpact();
     Share.share(
       'Nirmaan Store Executive Summary:\n'
       'Period: ${_selectedPeriod == 0 ? "Last 7 Days" : (_selectedPeriod == 1 ? "Last 30 Days" : "Last 90 Days")}\n'
@@ -55,30 +57,41 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         actionLabel: 'Export',
         onAction: _exportReport,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(NirmaanDimens.base),
-        children: [
-          // Segmented Period Switcher (7 Days / 30 Days / 90 Days)
-          SegmentedButton<int>(
-            segments: const [
-              ButtonSegment<int>(value: 0, label: Text('7 Days')),
-              ButtonSegment<int>(value: 1, label: Text('30 Days')),
-              ButtonSegment<int>(value: 2, label: Text('90 Days')),
-            ],
-            selected: {_selectedPeriod},
-            onSelectionChanged: (set) => setState(() => _selectedPeriod = set.first),
-          ),
+      body: RefreshIndicator(
+        color: NirmaanColors.brandNavy,
+        onRefresh: () async {
+          HapticFeedback.lightImpact();
+          await Future.delayed(const Duration(milliseconds: 500));
+          if (mounted) setState(() {});
+        },
+        child: ListView(
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+          children: [
+            // Segmented Period Switcher (7 Days / 30 Days / 90 Days)
+            SegmentedButton<int>(
+              segments: const [
+                ButtonSegment<int>(value: 0, label: Text('7 Days')),
+                ButtonSegment<int>(value: 1, label: Text('30 Days')),
+                ButtonSegment<int>(value: 2, label: Text('90 Days')),
+              ],
+              selected: {_selectedPeriod},
+              onSelectionChanged: (set) {
+                HapticFeedback.lightImpact();
+                setState(() => _selectedPeriod = set.first);
+              },
+            ),
 
-          const SizedBox(height: NirmaanDimens.lg),
+            const SizedBox(height: NirmaanDimens.lg),
 
-          // 2x2 KPI Cards
-          GridView.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: NirmaanDimens.md,
-            crossAxisSpacing: NirmaanDimens.md,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.4,
+            // 2x2 KPI Cards
+            GridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: NirmaanDimens.md,
+              crossAxisSpacing: NirmaanDimens.md,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1.18,
             children: [
               KpiMetricCard(
                 label: 'Gross Revenue',
@@ -145,6 +158,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   height: 160,
                   child: LineChart(
                     LineChartData(
+                      minX: -0.2,
+                      maxX: 6.2,
+                      minY: 14,
+                      maxY: 38,
                       gridData: FlGridData(
                         show: true,
                         drawVerticalLine: false,
@@ -160,11 +177,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
+                            reservedSize: 28,
                             getTitlesWidget: (val, meta) {
                               const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                               final index = val.toInt();
                               if (index >= 0 && index < days.length) {
-                                return Text(days[index], style: const TextStyle(fontSize: 10));
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(days[index], style: const TextStyle(fontSize: 10)),
+                                );
                               }
                               return const SizedBox();
                             },
@@ -303,6 +324,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           const SizedBox(height: NirmaanDimens.xxl),
         ],
       ),
+      ),
     );
   }
 }
@@ -379,11 +401,22 @@ class _TopProductTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(name, style: NirmaanTypography.titleMedium),
-              Text(sales, style: NirmaanTypography.bodySmall),
+              Text(
+                name,
+                style: NirmaanTypography.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                sales,
+                style: NirmaanTypography.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
         ),
+        const SizedBox(width: 8),
         Text(revenue, style: NirmaanTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
       ],
     );

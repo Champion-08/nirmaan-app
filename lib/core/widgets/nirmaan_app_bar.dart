@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/theme.dart';
 
@@ -40,7 +41,7 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool hasUnread;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(56);
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +49,31 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     if (isSub) {
       return AppBar(
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).maybePop();
+          },
+        ),
         title: Text(
           title ?? '',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         actions: [
           if (actionLabel case final label?)
             Padding(
               padding: const EdgeInsets.only(right: NirmaanDimens.base),
-              child: _ActionPill(label: label, onTap: onAction),
+              child: _ActionPill(
+                label: label,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onAction?.call();
+                },
+              ),
             ),
         ],
       );
@@ -74,6 +90,8 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: NirmaanDimens.sm,
       title: Text(
         'Nirmaan',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: isDark
                   ? NirmaanColors.darkHeading
@@ -85,18 +103,26 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
         Stack(
           children: [
             IconButton(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               icon: Icon(
                 Icons.notifications_outlined,
                 color: isDark
                     ? NirmaanColors.darkHeading
                     : NirmaanColors.headingDark,
               ),
-              onPressed: onNotificationTap ?? () => context.push('/notifications'),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                if (onNotificationTap != null) {
+                  onNotificationTap!();
+                } else {
+                  context.push('/notifications');
+                }
+              },
             ),
             if (hasUnread)
               Positioned(
-                right: 10,
-                top: 10,
+                right: 12,
+                top: 12,
                 child: Container(
                   width: 8,
                   height: 8,
@@ -111,15 +137,24 @@ class NirmaanAppBar extends StatelessWidget implements PreferredSizeWidget {
         // Profile avatar
         Padding(
           padding: const EdgeInsets.only(right: NirmaanDimens.base),
-          child: GestureDetector(
-            onTap: onProfileTap ?? () => context.push('/profile'),
-            child: CircleAvatar(
-              radius: 17,
-              backgroundColor: NirmaanColors.brandNavy,
-              child: Text(
-                'N',
-                style: NirmaanTypography.titleMedium
-                    .copyWith(color: NirmaanColors.white, fontSize: 13),
+          child: Center(
+            child: InkResponse(
+              radius: 24,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                if (onProfileTap != null) {
+                  onProfileTap!();
+                } else {
+                  context.push('/profile');
+                }
+              },
+              child: const CircleAvatar(
+                radius: 17,
+                backgroundColor: NirmaanColors.brandNavy,
+                child: Text(
+                  'N',
+                  style: TextStyle(color: NirmaanColors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ),

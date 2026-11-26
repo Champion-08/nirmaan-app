@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/theme.dart';
 import '../../core/widgets/widgets.dart';
@@ -27,10 +28,14 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
         title: 'Sales & Orders',
         actionLabel: '+ New Sale',
         onAction: () {
+          HapticFeedback.lightImpact();
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
             builder: (_) => const NewOrderSheet(),
           );
         },
@@ -56,9 +61,17 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
             todayTotal += o.totalAmount;
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(NirmaanDimens.base),
-            children: [
+          return RefreshIndicator(
+            color: NirmaanColors.brandNavy,
+            onRefresh: () async {
+              HapticFeedback.lightImpact();
+              ref.invalidate(ordersProvider);
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+              children: [
               // Header description + Date picker pill
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -182,41 +195,54 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
               const SizedBox(height: NirmaanDimens.lg),
 
               // Filter Tabs: All (42) / Pending (6) / Completed (36)
-              Row(
-                children: [
-                  ChoiceChip(
-                    label: Text('All (${allOrders.length})'),
-                    selected: _selectedTabIndex == 0,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedTabIndex == 0 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: _selectedTabIndex == 0 ? FontWeight.w700 : FontWeight.w500,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      label: Text('All (${allOrders.length})'),
+                      selected: _selectedTabIndex == 0,
+                      selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                      labelStyle: TextStyle(
+                        color: _selectedTabIndex == 0 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
+                        fontWeight: _selectedTabIndex == 0 ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      onSelected: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() => _selectedTabIndex = 0);
+                      },
                     ),
-                    onSelected: (_) => setState(() => _selectedTabIndex = 0),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('Pending ($pendingCount)'),
-                    selected: _selectedTabIndex == 1,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedTabIndex == 1 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: _selectedTabIndex == 1 ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Text('Pending ($pendingCount)'),
+                      selected: _selectedTabIndex == 1,
+                      selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                      labelStyle: TextStyle(
+                        color: _selectedTabIndex == 1 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
+                        fontWeight: _selectedTabIndex == 1 ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      onSelected: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() => _selectedTabIndex = 1);
+                      },
                     ),
-                    onSelected: (_) => setState(() => _selectedTabIndex = 1),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('Completed ($completedCount)'),
-                    selected: _selectedTabIndex == 2,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedTabIndex == 2 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: _selectedTabIndex == 2 ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Text('Completed ($completedCount)'),
+                      selected: _selectedTabIndex == 2,
+                      selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                      labelStyle: TextStyle(
+                        color: _selectedTabIndex == 2 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
+                        fontWeight: _selectedTabIndex == 2 ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      onSelected: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() => _selectedTabIndex = 2);
+                      },
                     ),
-                    onSelected: (_) => setState(() => _selectedTabIndex = 2),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               const SizedBox(height: NirmaanDimens.md),
@@ -254,9 +280,22 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(ord.customerName, style: NirmaanTypography.titleMedium),
+                                      Flexible(
+                                        child: Text(
+                                          ord.customerName,
+                                          style: NirmaanTypography.titleMedium,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                       const SizedBox(width: 6),
-                                      Text(ord.orderNumber, style: NirmaanTypography.bodySmall.copyWith(color: NirmaanColors.brandRoyalBlue, fontWeight: FontWeight.bold)),
+                                      Text(
+                                        ord.orderNumber,
+                                        style: NirmaanTypography.bodySmall.copyWith(
+                                          color: NirmaanColors.brandRoyalBlue,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 2),
@@ -326,6 +365,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
 
               const SizedBox(height: NirmaanDimens.xxl),
             ],
+            ),
           );
         },
       ),

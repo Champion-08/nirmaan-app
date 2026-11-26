@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,6 +11,7 @@ class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
 
   Future<void> _openWhatsApp() async {
+    HapticFeedback.lightImpact();
     final uri = Uri.parse('https://wa.me/919876543210?text=Hello%20Nirmaan%20Support');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -24,7 +26,8 @@ class MoreScreen extends ConsumerWidget {
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar.sub(title: 'More Hub'),
       body: ListView(
-        padding: const EdgeInsets.all(NirmaanDimens.base),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
         children: [
           // Branch #1 • Active Pill
           Row(
@@ -266,7 +269,10 @@ class _CommandHubTile extends StatelessWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(NirmaanDimens.cardRadius),
         child: ListTile(
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           leading: Container(
             padding: const EdgeInsets.all(8),
@@ -278,7 +284,14 @@ class _CommandHubTile extends StatelessWidget {
           ),
           title: Row(
             children: [
-              Text(title, style: NirmaanTypography.titleMedium),
+              Flexible(
+                child: Text(
+                  title,
+                  style: NirmaanTypography.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               if (badgeText != null) ...[
                 const SizedBox(width: 8),
                 Container(
@@ -310,7 +323,12 @@ class _CommandHubTile extends StatelessWidget {
               ],
             ],
           ),
-          subtitle: Text(subtitle, style: NirmaanTypography.bodySmall),
+          subtitle: Text(
+            subtitle,
+            style: NirmaanTypography.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: const Icon(Icons.chevron_right_rounded, size: 20),
         ),
       ),

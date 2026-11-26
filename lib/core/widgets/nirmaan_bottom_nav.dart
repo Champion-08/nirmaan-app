@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/theme.dart';
 
 class NirmaanBottomNav extends StatelessWidget {
@@ -49,7 +50,10 @@ class NirmaanBottomNav extends StatelessWidget {
                 tab: _tabs[i],
                 isActive: isActive,
                 isDark: isDark,
-                onTap: () => onTap(i),
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onTap(i);
+                },
               ),
             );
           }),
@@ -91,35 +95,40 @@ class _NavItem extends StatelessWidget {
         ? NirmaanColors.darkTintedHighlight
         : NirmaanColors.navActivePill;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return InkWell(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: isActive ? pillColor : Colors.transparent,
-              borderRadius: BorderRadius.circular(NirmaanDimens.pillRadius),
+      borderRadius: BorderRadius.circular(12),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: isActive ? pillColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(NirmaanDimens.pillRadius),
+              ),
+              child: Icon(
+                isActive ? tab.activeIcon : tab.icon,
+                size: 22,
+                color: isActive ? activeColor : inactiveColor,
+              ),
             ),
-            child: Icon(
-              isActive ? tab.activeIcon : tab.icon,
-              size: 22,
-              color: isActive ? activeColor : inactiveColor,
+            const SizedBox(height: 2),
+            Text(
+              tab.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                color: isActive ? activeColor : inactiveColor,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            tab.label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-              color: isActive ? activeColor : inactiveColor,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

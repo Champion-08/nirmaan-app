@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/theme.dart';
@@ -18,7 +19,10 @@ class InventoryScreen extends ConsumerWidget {
       appBar: NirmaanAppBar.sub(
         title: 'Inventory',
         actionLabel: '+ Add',
-        onAction: () => context.push('/add-product'),
+        onAction: () {
+          HapticFeedback.lightImpact();
+          context.push('/add-product');
+        },
       ),
       body: productsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -28,9 +32,17 @@ class InventoryScreen extends ConsumerWidget {
           final outOfStockCount = products.where((p) => p.isOutOfStock).length;
           final lowStockCount = products.where((p) => p.isLowStock).length;
 
-          return ListView(
-            padding: const EdgeInsets.all(NirmaanDimens.base),
-            children: [
+          return RefreshIndicator(
+            color: NirmaanColors.brandNavy,
+            onRefresh: () async {
+              HapticFeedback.lightImpact();
+              ref.invalidate(productsProvider);
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+              children: [
               // 3 Summary Cards
               Row(
                 children: [
@@ -182,7 +194,12 @@ class InventoryScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item.name, style: NirmaanTypography.titleMedium.copyWith(fontSize: 13)),
+                            Text(
+                              item.name,
+                              style: NirmaanTypography.titleMedium.copyWith(fontSize: 13),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             const SizedBox(height: 2),
                             Text('Qty: ${item.stockQty} remaining', style: NirmaanTypography.bodySmall),
                           ],
@@ -198,13 +215,14 @@ class InventoryScreen extends ConsumerWidget {
                           const SizedBox(height: 6),
                           GestureDetector(
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               ref.read(productsProvider.notifier).updateStock(item.id, item.stockQty + 20);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Restocked ${item.name} (+20 units)')),
                               );
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                               decoration: BoxDecoration(
                                 color: NirmaanColors.brandNavy,
                                 borderRadius: BorderRadius.circular(6),
@@ -233,7 +251,10 @@ class InventoryScreen extends ConsumerWidget {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => context.push('/products'),
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      context.push('/products');
+                    },
                     child: Text('View All (${products.length}) >', style: NirmaanTypography.labelSmall.copyWith(color: NirmaanColors.brandRoyalBlue, fontWeight: FontWeight.w700)),
                   ),
                 ],
@@ -241,6 +262,7 @@ class InventoryScreen extends ConsumerWidget {
 
               const SizedBox(height: NirmaanDimens.xxl),
             ],
+            ),
           );
         },
       ),

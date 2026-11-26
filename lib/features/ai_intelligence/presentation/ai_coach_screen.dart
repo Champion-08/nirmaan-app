@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -53,6 +54,7 @@ class _AiCoachScreenState extends ConsumerState<AiCoachScreen> {
 
   Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
+    HapticFeedback.lightImpact();
 
     final userMsg = _ChatMessage(
       text: text.trim(),
@@ -113,15 +115,23 @@ class _AiCoachScreenState extends ConsumerState<AiCoachScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).maybePop();
+          },
+        ),
         titleSpacing: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('AI Business Coach', style: NirmaanTypography.titleLarge),
-            Text('Ask Nirmaan about your business', style: NirmaanTypography.bodySmall.copyWith(fontSize: 11)),
+            Text('AI Business Coach', style: NirmaanTypography.titleLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text('Ask Nirmaan about your business', style: NirmaanTypography.bodySmall.copyWith(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),
         actions: [
@@ -283,8 +293,10 @@ class _AiCoachScreenState extends ConsumerState<AiCoachScreen> {
               child: Row(
                 children: [
                   IconButton(
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     icon: const Icon(Icons.mic_none_rounded, color: NirmaanColors.brandNavy),
                     onPressed: () {
+                      HapticFeedback.lightImpact();
                       _sendMessage('How are my sales doing?');
                     },
                   ),
@@ -303,13 +315,14 @@ class _AiCoachScreenState extends ConsumerState<AiCoachScreen> {
                     ),
                   ),
                   IconButton(
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
                         color: NirmaanColors.brandNavy,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 16),
+                      child: const Icon(Icons.arrow_upward_rounded, color: Colors.white, size: 18),
                     ),
                     onPressed: () => _sendMessage(_messageController.text),
                   ),
@@ -463,10 +476,14 @@ class _AiCoachScreenState extends ConsumerState<AiCoachScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        HapticFeedback.lightImpact();
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                          ),
                           builder: (_) => const CampaignBuilderSheet(
                             initialOffer: 'Weekend Beverage Flash Sale • 10% Off on ₹500+',
                           ),

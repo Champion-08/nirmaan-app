@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
@@ -58,6 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -95,6 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: NirmaanDimens.xl, vertical: NirmaanDimens.base),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,7 +217,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => context.push('/forgot-password'),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    context.push('/forgot-password');
+                  },
                   child: Text(
                     'Forgot Password?',
                     style: NirmaanTypography.labelMedium.copyWith(
@@ -260,7 +266,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               // Continue with Google Button
               OutlinedButton(
-                onPressed: _handleGoogleSignIn,
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _handleGoogleSignIn();
+                },
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(NirmaanDimens.buttonHeight),
                   backgroundColor: isDark ? NirmaanColors.darkCard : NirmaanColors.white,
@@ -343,7 +352,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => context.push('/signup'),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.push('/signup');
+                      },
                       child: Text(
                         'Sign up',
                         style: NirmaanTypography.bodyMedium.copyWith(

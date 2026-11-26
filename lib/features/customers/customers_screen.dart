@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/theme.dart';
@@ -18,6 +19,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   String _searchQuery = '';
 
   Future<void> _makeCall(String phone) async {
+    HapticFeedback.lightImpact();
     final cleanPhone = phone.replaceAll(RegExp(r'\s+'), '');
     final uri = Uri.parse('tel:$cleanPhone');
     if (await canLaunchUrl(uri)) {
@@ -26,6 +28,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   }
 
   Future<void> _sendWhatsApp(String phone, String name) async {
+    HapticFeedback.lightImpact();
     final cleanPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
     final msg = Uri.encodeComponent('Namaste $name ji, special seasonal offers are waiting for you at Shree Krishna General Store!');
     final uri = Uri.parse('https://wa.me/$cleanPhone?text=$msg');
@@ -45,6 +48,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         title: 'Customers CRM',
         actionLabel: '+ New',
         onAction: () {
+          HapticFeedback.lightImpact();
           showDialog(
             context: context,
             builder: (_) => const AddCustomerDialog(),
@@ -69,9 +73,17 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             return matchesFilter && matchesSearch;
           }).toList();
 
-          return ListView(
-            padding: const EdgeInsets.all(NirmaanDimens.base),
-            children: [
+          return RefreshIndicator(
+            color: NirmaanColors.brandNavy,
+            onRefresh: () async {
+              HapticFeedback.lightImpact();
+              ref.invalidate(customersProvider);
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
+              children: [
               // Search Bar with mic + filter
               Row(
                 children: [
@@ -221,41 +233,54 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               const SizedBox(height: NirmaanDimens.lg),
 
               // Filter pills: All (248), VIP Regulars (24), Needs Attention (4)
-              Row(
-                children: [
-                  ChoiceChip(
-                    label: Text('All (${allCustomers.length})'),
-                    selected: _selectedFilter == 0,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedFilter == 0 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: _selectedFilter == 0 ? FontWeight.w700 : FontWeight.w500,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    ChoiceChip(
+                      label: Text('All (${allCustomers.length})'),
+                      selected: _selectedFilter == 0,
+                      selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                      labelStyle: TextStyle(
+                        color: _selectedFilter == 0 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
+                        fontWeight: _selectedFilter == 0 ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      onSelected: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() => _selectedFilter = 0);
+                      },
                     ),
-                    onSelected: (_) => setState(() => _selectedFilter = 0),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('VIP Regulars ($vipCount)'),
-                    selected: _selectedFilter == 1,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedFilter == 1 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: _selectedFilter == 1 ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Text('VIP Regulars ($vipCount)'),
+                      selected: _selectedFilter == 1,
+                      selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                      labelStyle: TextStyle(
+                        color: _selectedFilter == 1 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
+                        fontWeight: _selectedFilter == 1 ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      onSelected: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() => _selectedFilter = 1);
+                      },
                     ),
-                    onSelected: (_) => setState(() => _selectedFilter = 1),
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('Needs Attention (${attentionList.length})'),
-                    selected: _selectedFilter == 2,
-                    selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
-                    labelStyle: TextStyle(
-                      color: _selectedFilter == 2 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
-                      fontWeight: _selectedFilter == 2 ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(width: 8),
+                    ChoiceChip(
+                      label: Text('Needs Attention (${attentionList.length})'),
+                      selected: _selectedFilter == 2,
+                      selectedColor: isDark ? NirmaanColors.darkTintedHighlight : NirmaanColors.navActivePill,
+                      labelStyle: TextStyle(
+                        color: _selectedFilter == 2 ? NirmaanColors.brandNavy : (isDark ? Colors.white70 : Colors.black54),
+                        fontWeight: _selectedFilter == 2 ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                      onSelected: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() => _selectedFilter = 2);
+                      },
                     ),
-                    onSelected: (_) => setState(() => _selectedFilter = 2),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               const SizedBox(height: NirmaanDimens.md),
@@ -302,7 +327,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(cust.name, style: NirmaanTypography.titleMedium),
+                                      Flexible(
+                                        child: Text(
+                                          cust.name,
+                                          style: NirmaanTypography.titleMedium,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                       if (isVip) ...[
                                         const SizedBox(width: 6),
                                         Container(
@@ -319,6 +351,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                   Text(
                                     '${cust.phone} • ${cust.orderCount} orders',
                                     style: NirmaanTypography.bodySmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
@@ -355,25 +389,30 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                         Row(
                           children: [
                             IconButton.outlined(
-                              icon: const Icon(Icons.phone_outlined, size: 16),
+                              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                              icon: const Icon(Icons.phone_outlined, size: 18),
                               onPressed: () => _makeCall(cust.phone),
-                              style: IconButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                              style: IconButton.styleFrom(visualDensity: VisualDensity.standard),
                             ),
                             const SizedBox(width: 8),
                             IconButton.outlined(
-                              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16, color: Color(0xFF15803D)),
+                              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                              icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18, color: Color(0xFF15803D)),
                               onPressed: () => _sendWhatsApp(cust.phone, cust.name),
-                              style: IconButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                              style: IconButton.styleFrom(visualDensity: VisualDensity.standard),
                             ),
                             const Spacer(),
                             ElevatedButton.icon(
-                              onPressed: () => _sendWhatsApp(cust.phone, cust.name),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                _sendWhatsApp(cust.phone, cust.name);
+                              },
                               icon: const Icon(Icons.send_rounded, size: 13),
                               label: const Text('Send Nudge'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: isAttention ? NirmaanColors.brandRoyalBlue : NirmaanColors.brandNavy,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                             ),
@@ -387,6 +426,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
               const SizedBox(height: NirmaanDimens.xxl),
             ],
+            ),
           );
         },
       ),
