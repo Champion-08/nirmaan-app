@@ -16,7 +16,9 @@ class BusinessHealthScreen extends StatelessWidget {
       appBar: NirmaanAppBar.sub(
         title: 'Business Health',
       ),
-      body: RefreshIndicator(
+      body: SafeArea(
+        top: false,
+        child: RefreshIndicator(
         color: NirmaanColors.brandNavy,
         onRefresh: () async {
           HapticFeedback.lightImpact();
@@ -195,6 +197,7 @@ class BusinessHealthScreen extends StatelessWidget {
             const SizedBox(height: NirmaanDimens.xxl),
           ],
         ),
+      ),
       ),
     );
   }

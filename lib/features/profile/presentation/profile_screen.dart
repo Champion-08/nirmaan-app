@@ -18,7 +18,9 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar.sub(title: 'Merchant Profile'),
-      body: storeAsync.when(
+      body: SafeArea(
+        top: false,
+        child: storeAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => const Center(child: Text('Failed to load profile')),
         data: (store) => RefreshIndicator(
@@ -290,6 +292,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: NirmaanDimens.xxl),
           ],
         ),
+      ),
       ),
       ),
     );

@@ -36,9 +36,11 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
         icon: const Icon(Icons.add_rounded),
         label: const Text('+ Add Product', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
-      body: productsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => const Center(child: Text('Failed to load items')),
+      body: SafeArea(
+        top: false,
+        child: productsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => const Center(child: Text('Failed to load items')),
         data: (allProducts) {
           final lowStockItems = allProducts.where((p) => p.isLowStock || p.isOutOfStock).toList();
 
@@ -206,6 +208,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }

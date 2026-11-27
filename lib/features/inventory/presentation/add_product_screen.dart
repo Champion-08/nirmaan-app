@@ -189,10 +189,12 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       resizeToAvoidBottomInset: true,
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,
       appBar: const NirmaanAppBar.sub(title: 'Add Product'),
-      body: ListView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 80),
-        children: [
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 80),
+          children: [
           // New Inventory Item [Active] header card
           Container(
             padding: const EdgeInsets.all(NirmaanDimens.base),
@@ -525,6 +527,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
 
           const SizedBox(height: NirmaanDimens.xxl),
         ],
+      ),
       ),
     );
   }

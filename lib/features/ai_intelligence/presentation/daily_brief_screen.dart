@@ -59,7 +59,9 @@ class _DailyBriefScreenState extends ConsumerState<DailyBriefScreen> {
           ],
         ),
       ),
-      body: ListView(
+      body: SafeArea(
+        top: false,
+        child: ListView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
         children: [
@@ -273,6 +275,7 @@ class _DailyBriefScreenState extends ConsumerState<DailyBriefScreen> {
 
           const SizedBox(height: NirmaanDimens.xxl),
         ],
+      ),
       ),
     );
   }

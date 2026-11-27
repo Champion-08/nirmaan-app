@@ -30,7 +30,6 @@ class NirmaanBottomNav extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: NirmaanDimens.bottomNavHeight,
       decoration: BoxDecoration(
         color: isDark ? NirmaanColors.darkCard : NirmaanColors.white,
         border: Border(
@@ -40,23 +39,28 @@ class NirmaanBottomNav extends StatelessWidget {
           ),
         ),
       ),
+      padding: EdgeInsets.only(bottom: MediaQuery.viewPaddingOf(context).bottom),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: List.generate(_tabs.length, (i) {
-            final isActive = i == currentIndex;
-            return Expanded(
-              child: _NavItem(
-                tab: _tabs[i],
-                isActive: isActive,
-                isDark: isDark,
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  onTap(i);
-                },
-              ),
-            );
-          }),
+        bottom: false,
+        child: SizedBox(
+          height: NirmaanDimens.bottomNavHeight,
+          child: Row(
+            children: List.generate(_tabs.length, (i) {
+              final isActive = i == currentIndex;
+              return Expanded(
+                child: _NavItem(
+                  tab: _tabs[i],
+                  isActive: isActive,
+                  isDark: isDark,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onTap(i);
+                  },
+                ),
+              );
+            }),
+          ),
         ),
       ),
     );

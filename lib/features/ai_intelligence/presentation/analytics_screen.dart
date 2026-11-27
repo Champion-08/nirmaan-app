@@ -57,7 +57,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         actionLabel: 'Export',
         onAction: _exportReport,
       ),
-      body: RefreshIndicator(
+      body: SafeArea(
+        top: false,
+        child: RefreshIndicator(
         color: NirmaanColors.brandNavy,
         onRefresh: () async {
           HapticFeedback.lightImpact();
@@ -323,6 +325,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
           const SizedBox(height: NirmaanDimens.xxl),
         ],
+      ),
       ),
       ),
     );

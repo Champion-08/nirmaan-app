@@ -39,9 +39,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           );
         },
       ),
-      body: notificationsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => const Center(child: Text('Failed to load notifications')),
+      body: SafeArea(
+        top: false,
+        child: notificationsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => const Center(child: Text('Failed to load notifications')),
         data: (allNotifs) {
           final unreadCount = allNotifs.where((n) => !n.isRead).length;
           final filteredList = _selectedFilter == 1
@@ -151,6 +153,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }
