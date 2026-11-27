@@ -71,7 +71,7 @@ class _AiCoachScreenState extends ConsumerState<AiCoachScreen> {
     _scrollToBottom();
 
     // Call GeminiService with local store intelligence fallback
-    final store = ref.read(storeProvider).valueOrNull;
+    final store = ref.read(currentStoreProvider).valueOrNull;
     final storeContext = {
       'store_name': store?.businessName,
       'category': store?.category,

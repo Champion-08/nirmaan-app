@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/providers/app_providers.dart';
@@ -137,17 +138,16 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
 
   Future<void> _handleSave() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter product name')),
-      );
+      ErrorHandler.showError(context, Exception(), customMessage: 'Please enter a product name.');
       return;
     }
 
     setState(() => _isLoading = true);
     try {
+      final storeId = ref.read(currentStoreProvider).valueOrNull?.id ?? '';
       final newProduct = ProductModel(
-        id: 'prod-${DateTime.now().millisecondsSinceEpoch}',
-        storeId: 'demo-store-001',
+        id: '',
+        storeId: storeId,
         name: _nameController.text.trim(),
         sku: _skuController.text.trim().isEmpty
             ? 'SKU-${DateTime.now().millisecondsSinceEpoch % 10000}'
@@ -165,17 +165,13 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
       await ref.read(productsProvider.notifier).addProduct(newProduct);
       if (!mounted) return;
       context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${newProduct.name} saved to inventory!'),
-          backgroundColor: NirmaanColors.successText,
-        ),
-      );
+      ErrorHandler.showSuccess(context, '${newProduct.name} saved to inventory!');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving product: $e')),
-      );
+      ErrorHandler.showError(context, e);
+      if (e is SessionExpiredException) {
+        context.go('/login');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

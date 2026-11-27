@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/customer_model.dart';
 import '../../../data/providers/app_providers.dart';
@@ -27,9 +29,7 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
 
   Future<void> _handleSave() async {
     if (_nameController.text.trim().isEmpty || _phoneController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter name and phone number')),
-      );
+      ErrorHandler.showError(context, Exception(), customMessage: 'Please enter name and phone number.');
       return;
     }
 
@@ -43,9 +43,10 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
           .join()
           .toUpperCase();
 
+      final storeId = ref.read(currentStoreProvider).valueOrNull?.id ?? '';
       final customer = CustomerModel(
-        id: 'cust-${DateTime.now().millisecondsSinceEpoch}',
-        storeId: 'demo-store-001',
+        id: '',
+        storeId: storeId,
         name: _nameController.text.trim(),
         initials: initials.isEmpty ? 'CU' : initials,
         phone: '+91 ${_phoneController.text.trim()}',
@@ -62,17 +63,14 @@ class _AddCustomerDialogState extends ConsumerState<AddCustomerDialog> {
       await ref.read(customersProvider.notifier).addCustomer(customer);
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Customer ${customer.name} added!'),
-          backgroundColor: NirmaanColors.successText,
-        ),
-      );
+      ErrorHandler.showSuccess(context, 'Customer ${customer.name} added!');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding customer: $e')),
-      );
+      ErrorHandler.showError(context, e);
+      if (e is SessionExpiredException) {
+        Navigator.pop(context);
+        context.go('/login');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

@@ -1,24 +1,27 @@
 import '../models/product_model.dart';
 import '../mock/mock_data.dart';
 import '../supabase_service.dart';
+import 'store_and_auth_repository.dart';
 
 class ProductRepository {
   final List<ProductModel> _localProducts = List.from(MockData.products);
+  final StoreRepository _storeRepo = StoreRepository();
 
   Future<List<ProductModel>> getProducts() async {
     if (SupabaseService.isDemoMode) {
       return List.unmodifiable(_localProducts);
     }
 
-    try {
-      final res = await SupabaseService.client!
-          .from('products')
-          .select()
-          .order('name');
-      return (res as List).map((p) => ProductModel.fromJson(p)).toList();
-    } catch (_) {
-      return List.unmodifiable(_localProducts);
-    }
+    final client = SupabaseService.requireAuthClient();
+    final store = await _storeRepo.getStore();
+    if (store == null || store.id.isEmpty) return [];
+
+    final res = await client
+        .from('products')
+        .select()
+        .eq('store_id', store.id)
+        .order('name');
+    return (res as List).map((p) => ProductModel.fromJson(p)).toList();
   }
 
   Future<ProductModel?> getProductByBarcode(String barcode) async {
@@ -29,14 +32,17 @@ class ProductRepository {
           );
     }
 
-    try {
-      final res = await SupabaseService.client!
-          .from('products')
-          .select()
-          .eq('barcode', barcode)
-          .maybeSingle();
-      if (res != null) return ProductModel.fromJson(res);
-    } catch (_) {}
+    final client = SupabaseService.requireAuthClient();
+    final store = await _storeRepo.getStore();
+    if (store == null || store.id.isEmpty) return null;
+
+    final res = await client
+        .from('products')
+        .select()
+        .eq('store_id', store.id)
+        .eq('barcode', barcode)
+        .maybeSingle();
+    if (res != null) return ProductModel.fromJson(res);
     return null;
   }
 
@@ -46,7 +52,16 @@ class ProductRepository {
       return;
     }
 
-    await SupabaseService.client!.from('products').insert(product.toJson());
+    final client = SupabaseService.requireAuthClient();
+    final storeId = await _storeRepo.getRequiredStoreId();
+
+    final payload = product.toJson();
+    payload['store_id'] = storeId;
+    if (product.id.isEmpty || product.id.startsWith('prod-') || product.id.startsWith('demo-')) {
+      payload.remove('id');
+    }
+
+    await client.from('products').insert(payload);
   }
 
   Future<void> updateProduct(ProductModel product) async {
@@ -56,10 +71,17 @@ class ProductRepository {
       return;
     }
 
-    await SupabaseService.client!
+    final client = SupabaseService.requireAuthClient();
+    final storeId = await _storeRepo.getRequiredStoreId();
+
+    final payload = product.toJson();
+    payload['store_id'] = storeId;
+
+    await client
         .from('products')
-        .update(product.toJson())
-        .eq('id', product.id);
+        .update(payload)
+        .eq('id', product.id)
+        .eq('store_id', storeId);
   }
 
   Future<void> updateStock(String productId, int newQty) async {
@@ -87,9 +109,13 @@ class ProductRepository {
       return;
     }
 
-    await SupabaseService.client!
+    final client = SupabaseService.requireAuthClient();
+    final storeId = await _storeRepo.getRequiredStoreId();
+
+    await client
         .from('products')
         .update({'stock_qty': newQty})
-        .eq('id', productId);
+        .eq('id', productId)
+        .eq('store_id', storeId);
   }
 }

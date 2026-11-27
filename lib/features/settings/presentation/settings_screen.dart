@@ -234,28 +234,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 color: isDark ? NirmaanColors.darkCardBorder : NirmaanColors.cardBorder,
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Signed in as Rahul Sharma',
-                  style: NirmaanTypography.titleMedium,
-                ),
-                Text(
-                  'rahul@shreekrishnagrocery.in',
-                  style: NirmaanTypography.bodySmall,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: OutlinedButton(
-                    onPressed: () async {
-                      HapticFeedback.mediumImpact();
-                      await auth.signOut();
-                      if (!context.mounted) return;
-                      context.go('/login');
-                    },
+            child: Builder(
+              builder: (context) {
+                final store = ref.watch(currentStoreProvider).valueOrNull;
+                final displayName = (store?.ownerName.trim().isNotEmpty == true)
+                    ? store!.ownerName.trim()
+                    : (auth.currentUserFullName.isNotEmpty ? auth.currentUserFullName : 'Merchant');
+                final displayEmail = (store?.email?.trim().isNotEmpty == true)
+                    ? store!.email!
+                    : (auth.currentUserEmail.isNotEmpty ? auth.currentUserEmail : '');
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Signed in as $displayName',
+                      style: NirmaanTypography.titleMedium,
+                    ),
+                    if (displayEmail.isNotEmpty)
+                      Text(
+                        displayEmail,
+                        style: NirmaanTypography.bodySmall,
+                      ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          HapticFeedback.mediumImpact();
+                          await auth.signOut();
+                          invalidateUserProviders(ref);
+                          if (!context.mounted) return;
+                          context.go('/login');
+                        },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: NirmaanColors.dangerText),
                       shape: RoundedRectangleBorder(
@@ -269,6 +281,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ],
+            );
+              },
             ),
           ),
 

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/app_providers.dart';
 
@@ -32,23 +33,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (_nameController.text.trim().isEmpty || _contactController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all fields')),
-      );
+      ErrorHandler.showError(context, Exception(), customMessage: 'Please complete all fields.');
       return;
     }
 
     if (_passwordController.text.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 8 characters')),
-      );
+      ErrorHandler.showError(context, Exception(), customMessage: 'Password must be at least 8 characters.');
       return;
     }
 
     if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
+      ErrorHandler.showError(context, Exception(), customMessage: 'Passwords do not match.');
       return;
     }
 
@@ -60,15 +55,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         _passwordController.text.trim(),
         _nameController.text.trim(),
       );
+      invalidateUserProviders(ref);
       if (!mounted) return;
-      // Route to business setup upon registration
       context.go('/business-setup');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration note: $e')),
-      );
-      context.go('/business-setup');
+      ErrorHandler.showError(context, e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

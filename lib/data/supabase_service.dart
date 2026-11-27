@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/utils/error_handler.dart';
 
 /// Manages Supabase client lifecycle and detects offline/demo fallback mode.
 class SupabaseService {
@@ -17,6 +18,20 @@ class SupabaseService {
     } catch (_) {
       return null;
     }
+  }
+
+  static User? get currentUser {
+    if (_isDemoMode || !_isInitialized) return null;
+    return client?.auth.currentUser;
+  }
+
+  /// Returns an authenticated [SupabaseClient] or throws [SessionExpiredException].
+  static SupabaseClient requireAuthClient() {
+    final c = client;
+    if (c == null || c.auth.currentUser == null) {
+      throw const SessionExpiredException();
+    }
+    return c;
   }
 
   /// Initialize Supabase with values from .env.

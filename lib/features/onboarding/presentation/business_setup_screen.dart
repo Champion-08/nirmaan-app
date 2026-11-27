@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/store_model.dart';
 import '../../../data/providers/app_providers.dart';
+import '../../../data/supabase_service.dart';
 
 class BusinessSetupScreen extends ConsumerStatefulWidget {
   const BusinessSetupScreen({super.key});
@@ -15,9 +17,9 @@ class BusinessSetupScreen extends ConsumerStatefulWidget {
 }
 
 class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
-  final _businessNameController = TextEditingController(text: 'Shree Krishna General Store');
-  final _ownerNameController = TextEditingController(text: 'Rahul Sharma');
-  final _phoneController = TextEditingController(text: '98765 43210');
+  late final TextEditingController _businessNameController;
+  late final TextEditingController _ownerNameController;
+  late final TextEditingController _phoneController;
   String _selectedCategory = 'Grocery & Daily Essentials';
   bool _isLoading = false;
 
@@ -29,6 +31,30 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    final auth = ref.read(authProvider);
+    final existingStore = ref.read(currentStoreProvider).valueOrNull;
+    _businessNameController = TextEditingController(
+      text: existingStore?.businessName.isNotEmpty == true
+          ? existingStore!.businessName
+          : (SupabaseService.isDemoMode ? 'Shree Krishna General Store' : ''),
+    );
+    _ownerNameController = TextEditingController(
+      text: existingStore?.ownerName.isNotEmpty == true
+          ? existingStore!.ownerName
+          : (auth.currentUserFullName.isNotEmpty
+              ? auth.currentUserFullName
+              : (SupabaseService.isDemoMode ? 'Rahul Sharma' : '')),
+    );
+    _phoneController = TextEditingController(
+      text: existingStore?.phone.isNotEmpty == true
+          ? existingStore!.phone.replaceFirst('+91 ', '')
+          : (SupabaseService.isDemoMode ? '98765 43210' : ''),
+    );
+  }
+
+  @override
   void dispose() {
     _businessNameController.dispose();
     _ownerNameController.dispose();
@@ -37,32 +63,50 @@ class _BusinessSetupScreenState extends ConsumerState<BusinessSetupScreen> {
   }
 
   Future<void> _handleSave() async {
+    final businessName = _businessNameController.text.trim();
+    final ownerName = _ownerNameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (businessName.isEmpty || ownerName.isEmpty) {
+      ErrorHandler.showError(
+        context,
+        Exception(),
+        customMessage: 'Please enter your business name and owner name.',
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final storeRepo = ref.read(storeRepoProvider);
+      final auth = ref.read(authProvider);
       final currentStore = await storeRepo.getStore();
       final updatedStore = StoreModel(
-        id: currentStore.id,
-        ownerId: currentStore.ownerId,
-        businessName: _businessNameController.text.trim(),
+        id: currentStore?.id ?? '',
+        ownerId: auth.currentUserId,
+        businessName: businessName,
         category: _selectedCategory,
-        ownerName: _ownerNameController.text.trim(),
-        phone: '+91 ${_phoneController.text.trim()}',
-        email: currentStore.email,
+        ownerName: ownerName,
+        phone: phone.isEmpty ? '' : (phone.startsWith('+91') ? phone : '+91 $phone'),
+        email: currentStore?.email ?? auth.currentUserEmail,
         gstRegistered: true,
         currency: 'INR',
-        businessHours: currentStore.businessHours,
-        kycVerified: true,
-        createdAt: currentStore.createdAt,
+        businessHours: currentStore?.businessHours ?? '08:00 AM - 10:00 PM',
+        kycVerified: currentStore?.kycVerified ?? true,
+        createdAt: currentStore?.createdAt ?? DateTime.now(),
       );
 
-      await storeRepo.updateStore(updatedStore);
+      await storeRepo.upsertStore(updatedStore);
       if (!mounted) return;
-      ref.invalidate(storeProvider);
+      invalidateUserProviders(ref);
+      ErrorHandler.showSuccess(context, 'Store profile saved!');
       context.go('/');
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      context.go('/');
+      ErrorHandler.showError(context, e);
+      if (e is SessionExpiredException) {
+        context.go('/login');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

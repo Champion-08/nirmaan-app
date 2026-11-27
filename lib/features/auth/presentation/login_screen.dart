@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/providers/app_providers.dart';
+import '../../../data/supabase_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -14,8 +16,12 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController(text: 'rahul@shreekrishnagrocery.in');
-  final _passwordController = TextEditingController(text: 'merchant123');
+  final _emailController = TextEditingController(
+    text: SupabaseService.isDemoMode ? 'rahul@shreekrishnagrocery.in' : '',
+  );
+  final _passwordController = TextEditingController(
+    text: SupabaseService.isDemoMode ? 'merchant123' : '',
+  );
   bool _obscurePassword = true;
   bool _isLoading = false;
 
@@ -27,20 +33,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ErrorHandler.showError(context, Exception(), customMessage: 'Please enter your email and password.');
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final auth = ref.read(authProvider);
-      await auth.signInWithEmail(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
+      await auth.signInWithEmail(email, password);
+      invalidateUserProviders(ref);
+      final store = await ref.read(currentStoreProvider.future);
       if (!mounted) return;
-      context.go('/');
+      if (store == null || store.businessName.trim().isEmpty) {
+        context.go('/business-setup');
+      } else {
+        context.go('/');
+      }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
-      );
+      ErrorHandler.showError(context, e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -51,6 +65,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await Future.delayed(const Duration(milliseconds: 600));
     if (!mounted) return;
     setState(() => _isLoading = false);
+    if (!SupabaseService.isDemoMode && !ref.read(authProvider).isAuthenticated) {
+      ErrorHandler.showInfo(context, 'Please sign in with your email and password.');
+      return;
+    }
     context.go('/');
   }
 

@@ -23,18 +23,32 @@ class ProfileScreen extends ConsumerWidget {
         child: storeAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => const Center(child: Text('Failed to load profile')),
-        data: (store) => RefreshIndicator(
+        data: (store) {
+          final ownerName = (store?.ownerName.trim().isNotEmpty == true)
+              ? store!.ownerName.trim()
+              : (auth.currentUserFullName.isNotEmpty ? auth.currentUserFullName : 'Merchant');
+          final initials = ownerName
+              .split(' ')
+              .where((p) => p.isNotEmpty)
+              .take(2)
+              .map((p) => p[0].toUpperCase())
+              .join();
+          final displayEmail = (store?.email?.trim().isNotEmpty == true)
+              ? store!.email!
+              : (auth.currentUserEmail.isNotEmpty ? auth.currentUserEmail : 'Not set');
+
+          return RefreshIndicator(
           color: NirmaanColors.brandNavy,
           onRefresh: () async {
             HapticFeedback.lightImpact();
-            ref.invalidate(storeProvider);
-            await ref.read(storeProvider.future);
+            ref.invalidate(currentStoreProvider);
+            await ref.read(currentStoreProvider.future);
           },
           child: ListView(
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             padding: const EdgeInsets.fromLTRB(NirmaanDimens.base, NirmaanDimens.sm, NirmaanDimens.base, 100),
             children: [
-            // Header card with RS avatar, name, badges & Edit Profile
+            // Header card with dynamic avatar, name, badges & Edit Profile
             Container(
               padding: const EdgeInsets.all(NirmaanDimens.base),
               decoration: BoxDecoration(
@@ -53,7 +67,7 @@ class ProfileScreen extends ConsumerWidget {
                         radius: 36,
                         backgroundColor: NirmaanColors.brandNavy,
                         child: Text(
-                          'RS',
+                          initials.isNotEmpty ? initials : 'M',
                           style: NirmaanTypography.headlineLarge.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -80,7 +94,7 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    store.ownerName,
+                    ownerName,
                     style: NirmaanTypography.headlineMedium.copyWith(
                       color: isDark ? NirmaanColors.darkHeading : NirmaanColors.headingDark,
                     ),
@@ -116,7 +130,7 @@ class ProfileScreen extends ConsumerWidget {
                             const Icon(Icons.check_circle_rounded, size: 12, color: NirmaanColors.successText),
                             const SizedBox(width: 4),
                             Text(
-                              'KYC Verified',
+                              store?.kycVerified == true ? 'KYC Verified' : 'Active Account',
                               style: NirmaanTypography.labelSmall.copyWith(
                                 color: NirmaanColors.successText,
                                 fontWeight: FontWeight.w600,
@@ -180,7 +194,7 @@ class ProfileScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Text(
-                        'GST Registered',
+                        store?.gstRegistered == true ? 'GST Registered' : 'Unregistered',
                         style: NirmaanTypography.labelSmall.copyWith(
                           color: NirmaanColors.successText,
                           fontWeight: FontWeight.w600,
@@ -190,17 +204,29 @@ class ProfileScreen extends ConsumerWidget {
                     isDark: isDark,
                   ),
                   const Divider(height: 20),
-                  _InfoRow(label: 'Store Name', value: store.businessName, isDark: isDark),
+                  _InfoRow(
+                    label: 'Store Name',
+                    value: store?.businessName.isNotEmpty == true ? store!.businessName : 'Not configured',
+                    isDark: isDark,
+                  ),
                   const Divider(height: 20),
-                  _InfoRow(label: 'Category', value: store.category, isDark: isDark),
+                  _InfoRow(
+                    label: 'Category',
+                    value: store?.category.isNotEmpty == true ? store!.category : 'General Retail',
+                    isDark: isDark,
+                  ),
                   const Divider(height: 20),
-                  _InfoRow(label: 'Mobile', value: store.phone, isDark: isDark),
+                  _InfoRow(
+                    label: 'Mobile',
+                    value: store?.phone.isNotEmpty == true ? store!.phone : 'Not set',
+                    isDark: isDark,
+                  ),
                   const Divider(height: 20),
-                  _InfoRow(label: 'Email', value: store.email ?? 'rahul@shreekrishnagrocery.in', isDark: isDark),
+                  _InfoRow(label: 'Email', value: displayEmail, isDark: isDark),
                   const Divider(height: 20),
-                  _InfoRow(label: 'Currency', value: '₹ INR', isDark: isDark),
+                  _InfoRow(label: 'Currency', value: '₹ ${store?.currency ?? 'INR'}', isDark: isDark),
                   const Divider(height: 20),
-                  _InfoRow(label: 'Hours', value: store.businessHours, isDark: isDark),
+                  _InfoRow(label: 'Hours', value: store?.businessHours ?? '08:00 AM - 10:00 PM', isDark: isDark),
                 ],
               ),
             ),
@@ -268,6 +294,7 @@ class ProfileScreen extends ConsumerWidget {
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
                   await auth.signOut();
+                  invalidateUserProviders(ref);
                   if (!context.mounted) return;
                   context.go('/login');
                 },
@@ -292,7 +319,8 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: NirmaanDimens.xxl),
           ],
         ),
-      ),
+      );
+        },
       ),
       ),
     );

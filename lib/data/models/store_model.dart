@@ -30,17 +30,17 @@ class StoreModel {
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
     return StoreModel(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       ownerId: json['owner_id'] as String? ?? '',
-      businessName: json['business_name'] as String? ?? 'Shree Krishna General Store',
+      businessName: json['business_name'] as String? ?? '',
       category: json['category'] as String? ?? 'Grocery & Daily Essentials',
-      ownerName: json['owner_name'] as String? ?? 'Rahul Sharma',
-      phone: json['phone'] as String? ?? '+91 98765 43210',
+      ownerName: json['owner_name'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
       email: json['email'] as String?,
       gstRegistered: json['gst_registered'] as bool? ?? true,
       currency: json['currency'] as String? ?? 'INR',
       businessHours: json['business_hours'] as String? ?? '08:00 AM - 10:00 PM',
-      kycVerified: json['kyc_verified'] as bool? ?? true,
+      kycVerified: json['kyc_verified'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/store_model.dart';
 import '../models/product_model.dart';
 import '../models/customer_model.dart';
@@ -37,18 +38,32 @@ final analyticsRepoProvider = Provider<AnalyticsRepository>((ref) {
   return AnalyticsRepository();
 });
 
-// ─── Feature Data Providers ──────────────────────────────────────────
+// ─── Auth State & Store Providers ─────────────────────────────────────
 
-/// Auth State Provider
+/// Auth Repository Provider
 final authProvider = Provider<AuthRepository>((ref) {
   return ref.watch(authRepoProvider);
 });
 
-/// Store Information Provider
-final storeProvider = FutureProvider<StoreModel>((ref) async {
+/// Watches Supabase auth state changes so all user-scoped providers reset on login/logout.
+final authStateProvider = StreamProvider<AuthState?>((ref) {
+  final auth = ref.watch(authRepoProvider);
+  final stream = auth.authStateChanges;
+  if (stream == null) return Stream.value(null);
+  return stream;
+});
+
+/// Current Store Information Provider (watches authStateProvider for per-user isolation)
+final currentStoreProvider = FutureProvider<StoreModel?>((ref) async {
+  ref.watch(authStateProvider);
+  final auth = ref.watch(authRepoProvider);
+  if (!auth.isAuthenticated) return null;
   final repo = ref.watch(storeRepoProvider);
   return repo.getStore();
 });
+
+/// Alias kept for backwards compatibility across screens.
+final storeProvider = currentStoreProvider;
 
 /// Products List Provider
 class ProductsNotifier extends StateNotifier<AsyncValue<List<ProductModel>>> {
@@ -81,6 +96,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<ProductModel>>> {
 
 final productsProvider =
     StateNotifierProvider<ProductsNotifier, AsyncValue<List<ProductModel>>>((ref) {
+  ref.watch(authStateProvider);
   final repo = ref.watch(productRepoProvider);
   return ProductsNotifier(repo);
 });
@@ -111,6 +127,7 @@ class OrdersNotifier extends StateNotifier<AsyncValue<List<OrderModel>>> {
 
 final ordersProvider =
     StateNotifierProvider<OrdersNotifier, AsyncValue<List<OrderModel>>>((ref) {
+  ref.watch(authStateProvider);
   final repo = ref.watch(orderRepoProvider);
   return OrdersNotifier(repo);
 });
@@ -141,6 +158,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<CustomerModel>>> {
 
 final customersProvider =
     StateNotifierProvider<CustomersNotifier, AsyncValue<List<CustomerModel>>>((ref) {
+  ref.watch(authStateProvider);
   final repo = ref.watch(customerRepoProvider);
   return CustomersNotifier(repo);
 });
@@ -171,12 +189,26 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<NotificationMo
 
 final notificationsProvider =
     StateNotifierProvider<NotificationsNotifier, AsyncValue<List<NotificationModel>>>((ref) {
+  ref.watch(authStateProvider);
   final repo = ref.watch(notificationRepoProvider);
   return NotificationsNotifier(repo);
 });
 
 /// Analytics & AI Brief Provider
-final analyticsProvider = FutureProvider<AiBriefModel>((ref) async {
+final analyticsProvider = FutureProvider<AiBriefModel?>((ref) async {
+  ref.watch(authStateProvider);
+  final auth = ref.watch(authRepoProvider);
+  if (!auth.isAuthenticated) return null;
   final repo = ref.watch(analyticsRepoProvider);
   return repo.getLatestAiBrief();
 });
+
+/// Invalidates all user-scoped Riverpod providers on sign-out or account switch.
+void invalidateUserProviders(WidgetRef ref) {
+  ref.invalidate(currentStoreProvider);
+  ref.invalidate(productsProvider);
+  ref.invalidate(ordersProvider);
+  ref.invalidate(customersProvider);
+  ref.invalidate(notificationsProvider);
+  ref.invalidate(analyticsProvider);
+}

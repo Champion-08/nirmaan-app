@@ -19,8 +19,9 @@ class _DailyBriefScreenState extends ConsumerState<DailyBriefScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final storeAsync = ref.watch(storeProvider);
-    final ownerName = storeAsync.valueOrNull?.ownerName.split(' ').first ?? 'Rahul';
+    final storeAsync = ref.watch(currentStoreProvider);
+    final rawOwner = storeAsync.valueOrNull?.ownerName.trim() ?? '';
+    final ownerName = rawOwner.isNotEmpty ? rawOwner.split(' ').first : 'Merchant';
 
     return Scaffold(
       backgroundColor: isDark ? NirmaanColors.darkCanvas : NirmaanColors.pageCanvas,

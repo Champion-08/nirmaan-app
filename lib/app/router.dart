@@ -3,6 +3,7 @@ library;
 
 import 'package:go_router/go_router.dart';
 import '../app/app_shell.dart';
+import '../data/supabase_service.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/signup_screen.dart';
@@ -19,8 +20,25 @@ import '../features/ai_intelligence/presentation/daily_brief_screen.dart';
 import '../features/ai_intelligence/presentation/analytics_screen.dart';
 import '../features/ai_intelligence/presentation/business_health_screen.dart';
 
+const _publicRoutes = {
+  '/splash',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+};
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
+  redirect: (context, state) {
+    if (SupabaseService.isDemoMode) return null;
+    final isLoggedIn = SupabaseService.currentUser != null;
+    final isPublic = _publicRoutes.contains(state.matchedLocation);
+    if (!isLoggedIn && !isPublic) {
+      return '/login';
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/splash',

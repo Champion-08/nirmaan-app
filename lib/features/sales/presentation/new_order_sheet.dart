@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/theme.dart';
+import '../../../core/utils/error_handler.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/models/order_model.dart';
@@ -16,7 +18,7 @@ class NewOrderSheet extends ConsumerStatefulWidget {
 
 class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
   final Map<String, int> _selectedQuantities = {};
-  String _customerName = 'Rahul Sharma';
+  String _customerName = 'Walk-in Counter Guest';
   String _paymentMethod = 'UPI Paid';
   bool _isLoading = false;
 
@@ -95,24 +97,28 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
                     ),
                   ),
                   child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: _customerName,
-                      dropdownColor: isDark ? NirmaanColors.darkCard : NirmaanColors.white,
-                      items: [
-                        'Rahul Sharma',
-                        'Priya Patel',
-                        'Amit Singh',
-                        'Neha Gupta',
-                        'Walk-in Counter Guest',
-                      ].map((name) {
-                        return DropdownMenuItem(
-                          value: name,
-                          child: Text(name, style: NirmaanTypography.bodyMedium),
+                    child: Builder(
+                      builder: (context) {
+                        final customers = ref.watch(customersProvider).valueOrNull ?? [];
+                        final options = {
+                          'Walk-in Counter Guest',
+                          ...customers.map((c) => c.name).where((n) => n.isNotEmpty),
+                        }.toList();
+                        final selected = options.contains(_customerName) ? _customerName : options.first;
+                        return DropdownButton<String>(
+                          isExpanded: true,
+                          value: selected,
+                          dropdownColor: isDark ? NirmaanColors.darkCard : NirmaanColors.white,
+                          items: options.map((name) {
+                            return DropdownMenuItem(
+                              value: name,
+                              child: Text(name, style: NirmaanTypography.bodyMedium),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _customerName = val);
+                          },
                         );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _customerName = val);
                       },
                     ),
                   ),
@@ -353,13 +359,14 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
                     ? () async {
                         setState(() => _isLoading = true);
                         try {
+                          final storeId = ref.read(currentStoreProvider).valueOrNull?.id ?? '';
                           final orderNumber = '#${1025 + (DateTime.now().millisecondsSinceEpoch % 1000)}';
                           final newOrder = OrderModel(
-                            id: 'ord-${DateTime.now().millisecondsSinceEpoch}',
-                            storeId: 'demo-store-001',
+                            id: '',
+                            storeId: storeId,
                             orderNumber: orderNumber,
                             customerName: _customerName,
-                            customerInitials: _customerName.split(' ').map((e) => e[0]).take(2).join(),
+                            customerInitials: _customerName.split(' ').where((e) => e.isNotEmpty).map((e) => e[0]).take(2).join().toUpperCase(),
                             itemsSummary: itemsSummary.isEmpty ? 'Quick billing order' : itemsSummary,
                             itemCount: itemCount,
                             totalAmount: totalAmount,
@@ -382,17 +389,14 @@ class _NewOrderSheetState extends ConsumerState<NewOrderSheet> {
 
                           if (!context.mounted) return;
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Order $orderNumber created successfully! Stock updated.'),
-                              backgroundColor: NirmaanColors.successText,
-                            ),
-                          );
+                          ErrorHandler.showSuccess(context, 'Order $orderNumber created! Stock updated.');
                         } catch (e) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to create order: $e')),
-                          );
+                          ErrorHandler.showError(context, e);
+                          if (e is SessionExpiredException) {
+                            Navigator.pop(context);
+                            context.go('/login');
+                          }
                         } finally {
                           if (mounted) setState(() => _isLoading = false);
                         }
